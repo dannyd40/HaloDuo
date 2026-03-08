@@ -65,7 +65,7 @@ backend/src/
 │   ├── couple.js     # POST /creer, /rejoindre | GET /info — auto-indexes ethical guide on creation
 │   ├── stripe.js     # POST /checkout, /portal, /webhook (raw body)
 │   ├── pdf.js        # GET / (list), /:pdfId/contenu, /:pdfId/highlights — read-only, no upload
-│   └── admin.js      # POST /indexer, /indexer/:coupleId — admin RAG indexation (ADMIN_KEY header)
+│   └── admin.js      # Admin panel (is_admin guard): GET stats, users, couples, rag | PATCH users/:id | DELETE users/:id | POST indexer, couples/:id/indexer
 └── services/
     ├── groq.js       # Groq API (llama-4-scout), personal + couple advice generation
     ├── rag.js        # Markdown/PDF parsing, chunking, Ollama embeddings, vector search, batch indexation
@@ -96,13 +96,13 @@ API routes are all under `/api`. Stripe webhook route must receive raw body (par
 
 ```
 frontend/src/
-├── App.jsx           # BrowserRouter, AuthProvider, route definitions, ProtectedRoute
+├── App.jsx           # BrowserRouter, AuthProvider, route definitions, ProtectedRoute, AdminRoute
 ├── main.jsx          # React root render
 ├── index.css         # Global styles, CSS variables (--cream, --accent, --gold)
 ├── hooks/useAuth.jsx # AuthProvider context: login, register, logout, token refresh, /me check
 ├── utils/api.js      # Fetch wrapper: auto Bearer token, 401 retry with refresh, base URL from VITE_API_URL
 ├── components/
-│   ├── Nav.jsx       # Navbar + BottomNav (5 tabs) + BadgePlan
+│   ├── Nav.jsx       # Navbar + BottomNav (5 tabs) + BadgePlan + Admin badge (if is_admin)
 │   └── Freemium.jsx  # BannerFreemium + ModalUpgrade (Stripe checkout)
 └── pages/
     ├── Journal.jsx, Conseil.jsx         # Personal: score entry + private advice
@@ -113,6 +113,10 @@ frontend/src/
     ├── Landing.jsx                      # Public landing with login link in header
     ├── Login.jsx, Register.jsx          # Auth pages with auto-join via ?code= param
     ├── Pricing.jsx                      # Plans comparison + Stripe checkout
+    └── admin/
+        ├── Dashboard.jsx                # Admin stats cards + RAG indexation + RAG status
+        ├── Utilisateurs.jsx             # User list, plan change, delete
+        └── Couples.jsx                  # Couple list, RAG re-index per couple
 ```
 
 State management: React Context (useAuth) for auth state; local useState in each page. No Redux/Zustand. Tokens stored in localStorage (`hd_access`, `hd_refresh`).
@@ -172,22 +176,20 @@ Full documentation: `docs/database.md`
 - **RAG**: Supports both PDF and Markdown sources, organized by ethical framework in `backend/data/pdfs/<cadre>/`. Built-in guides are auto-indexed on couple creation. Admin route for batch indexation.
 - AI prompts are framework-aware — they reference different therapeutic traditions based on the couple's chosen cadre éthique
 
-## Admin Operations
+## Admin Panel
 
-### RAG Indexation
+Admin panel at `/admin` (frontend), protected by `is_admin` boolean on `users` table. All `/api/admin/*` routes require JWT auth + `is_admin = true`.
+
+**Features:**
+- **Dashboard** (`/admin`): Stats cards (users, couples, journals today, premium) + RAG indexation trigger + RAG status
+- **Utilisateurs** (`/admin/utilisateurs`): User list with plan change (dropdown) and delete
+- **Couples** (`/admin/couples`): Couple list with RAG re-index per couple
+
+**Setup:** `ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE;` then `UPDATE users SET is_admin = true WHERE email = 'your@email.com';`
+
+### Manual DB Access
 ```bash
-# Index guides for all existing couples
-curl -X POST https://haloduo.pocketyapp.com/api/admin/indexer \
-  -H "x-admin-key: YOUR_ADMIN_KEY"
-
-# Index for a specific couple
-curl -X POST https://haloduo.pocketyapp.com/api/admin/indexer/COUPLE_ID \
-  -H "x-admin-key: YOUR_ADMIN_KEY"
-```
-
-### Manual Premium Upgrade
-```sql
-UPDATE abonnements SET plan = 'mensuel', statut = 'actif' WHERE user_id = 'USER_ID';
+psql "postgres://postgres:PASSWORD@voo08kwckkkgwwck40kkooco:5432/halo_duo"
 ```
 
 ## Privacy Invariant
