@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../utils/api';
 import { useAuth } from '../hooks/useAuth.jsx';
 
@@ -12,10 +12,12 @@ const CADRES = [
 ];
 
 export default function Onboarding() {
-  const [mode, setMode] = useState('creer'); // 'creer' | 'rejoindre'
+  const [searchParams] = useSearchParams();
+  const inviteCode = searchParams.get('code') || '';
+  const [mode, setMode] = useState(inviteCode ? 'rejoindre' : 'creer');
   const [prenom, setPrenom] = useState('');
   const [cadre, setCadre] = useState('laique');
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(inviteCode);
   const [step, setStep] = useState(1); // 1: mode, 2: details, 3: done
   const [inviteCode, setInviteCode] = useState('');
   const [error, setError] = useState('');

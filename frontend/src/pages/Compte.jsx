@@ -96,12 +96,25 @@ export default function Compte() {
               <span style={{ color: 'var(--text-muted)' }}>Partenaire</span>
               <span style={{ fontWeight: 500 }}>{user.partenaire.partenaire_prenom || 'En attente…'}</span>
             </div>
-            {user.partenaire.role === 'createur' && user.partenaire.code_invitation && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: 14 }}>
-                <span style={{ color: 'var(--text-muted)' }}>Code d'invitation</span>
-                <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 16, color: 'var(--accent)', letterSpacing: '0.1em', fontWeight: 600 }}>
-                  {user.partenaire.code_invitation}
-                </span>
+            {user.partenaire.code_invitation && (
+              <div style={{ padding: '12px 0', fontSize: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Code d'invitation</span>
+                  <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 16, color: 'var(--accent)', letterSpacing: '0.1em', fontWeight: 600 }}>
+                    {user.partenaire.code_invitation}
+                  </span>
+                </div>
+                <button
+                  className="btn btn-ghost"
+                  style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}
+                  onClick={() => {
+                    const link = `${window.location.origin}/register?code=${user.partenaire.code_invitation}`;
+                    navigator.clipboard.writeText(link);
+                    alert('Lien copié !');
+                  }}
+                >
+                  Copier le lien d'invitation
+                </button>
               </div>
             )}
           </div>

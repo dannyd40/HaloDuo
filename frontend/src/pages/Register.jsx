@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
 
 export default function Register() {
+  const [searchParams] = useSearchParams();
+  const inviteCode = searchParams.get('code') || '';
   const [form, setForm] = useState({ nom: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,7 +16,7 @@ export default function Register() {
     setLoading(true); setError('');
     try {
       await register(form.email, form.password, form.nom);
-      navigate('/onboarding');
+      navigate(inviteCode ? `/onboarding?code=${inviteCode}` : '/onboarding');
     } catch (err) {
       setError(err.message);
     } finally { setLoading(false); }
