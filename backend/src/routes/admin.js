@@ -110,6 +110,33 @@ router.get('/couples', async (req, res) => {
   }
 });
 
+// GET /api/admin/rag — statut de l'indexation RAG
+router.get('/rag', async (req, res) => {
+  try {
+    const [totalChunks, pdfs, couplesIndexes] = await Promise.all([
+      db.query('SELECT COUNT(*)::int as count FROM chunks_pdf'),
+      db.query(`SELECT p.id, p.nom, p.cadre, p.statut, p.nb_chunks, p.couple_id,
+                       c.cadre_ethique
+                FROM pdfs p
+                LEFT JOIN couples c ON c.id = p.couple_id
+                ORDER BY p.nom`),
+      db.query(`SELECT DISTINCT couple_id FROM chunks_pdf`),
+    ]);
+
+    const { rows: couplesTotal } = await db.query('SELECT COUNT(*)::int as count FROM couples');
+
+    res.json({
+      total_chunks: totalChunks.rows[0].count,
+      total_documents: pdfs.rows.length,
+      couples_indexes: couplesIndexes.rows.length,
+      couples_total: couplesTotal.rows[0].count,
+      documents: pdfs.rows,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/admin/indexer — indexer tous les couples
 router.post('/indexer', async (req, res) => {
   try {

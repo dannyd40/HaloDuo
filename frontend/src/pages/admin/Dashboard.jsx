@@ -30,12 +30,16 @@ export function AdminTabs({ current }) {
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
+  const [rag, setRag] = useState(null);
   const [error, setError] = useState(null);
   const [indexing, setIndexing] = useState(false);
   const [indexResult, setIndexResult] = useState(null);
 
+  const loadRag = () => api('/admin/rag').then(setRag).catch(() => {});
+
   useEffect(() => {
     api('/admin/stats').then(setStats).catch(err => setError(err.message));
+    loadRag();
   }, []);
 
   const indexerTout = async () => {
@@ -43,6 +47,7 @@ export default function Dashboard() {
     try {
       const result = await api('/admin/indexer', { method: 'POST' });
       setIndexResult(`${result.total_chunks} chunks indexés pour ${result.couples.length} couple(s)`);
+      loadRag();
     } catch (err) {
       setIndexResult(`Erreur : ${err.message}`);
     }
@@ -78,7 +83,7 @@ export default function Dashboard() {
       </div>
 
       {/* RAG Indexation */}
-      <div style={{ background: 'white', borderRadius: 'var(--radius)', padding: 24, boxShadow: 'var(--shadow)' }}>
+      <div style={{ background: 'white', borderRadius: 'var(--radius)', padding: 24, boxShadow: 'var(--shadow)', marginBottom: 16 }}>
         <h3 style={{ fontSize: 16, marginBottom: 8 }}>Indexation RAG</h3>
         <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
           Indexe les guides éthiques pour tous les couples via Ollama.
@@ -93,6 +98,71 @@ export default function Dashboard() {
           </p>
         )}
       </div>
+
+      {/* RAG Status */}
+      {rag && (
+        <div style={{ background: 'white', borderRadius: 'var(--radius)', padding: 24, boxShadow: 'var(--shadow)' }}>
+          <h3 style={{ fontSize: 16, marginBottom: 16 }}>Statut RAG</h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+            <div style={{ textAlign: 'center', padding: 12, background: 'var(--cream)', borderRadius: 8 }}>
+              <div className="serif" style={{ fontSize: 28, color: 'var(--gold)', fontWeight: 600 }}>{rag.total_chunks}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Chunks</div>
+            </div>
+            <div style={{ textAlign: 'center', padding: 12, background: 'var(--cream)', borderRadius: 8 }}>
+              <div className="serif" style={{ fontSize: 28, color: 'var(--gold)', fontWeight: 600 }}>{rag.total_documents}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Documents</div>
+            </div>
+            <div style={{ textAlign: 'center', padding: 12, background: 'var(--cream)', borderRadius: 8 }}>
+              <div className="serif" style={{ fontSize: 28, color: 'var(--gold)', fontWeight: 600 }}>{rag.couples_indexes}/{rag.couples_total}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Couples indexés</div>
+            </div>
+          </div>
+
+          {rag.documents.length > 0 && (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--cream-dark)', textAlign: 'left' }}>
+                  <th style={{ padding: '8px 12px', color: 'var(--text-muted)', fontWeight: 500 }}>Document</th>
+                  <th style={{ padding: '8px 12px', color: 'var(--text-muted)', fontWeight: 500 }}>Cadre</th>
+                  <th style={{ padding: '8px 12px', color: 'var(--text-muted)', fontWeight: 500 }}>Chunks</th>
+                  <th style={{ padding: '8px 12px', color: 'var(--text-muted)', fontWeight: 500 }}>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rag.documents.map(doc => (
+                  <tr key={doc.id} style={{ borderBottom: '1px solid var(--cream-dark)' }}>
+                    <td style={{ padding: '8px 12px', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {doc.nom}
+                    </td>
+                    <td style={{ padding: '8px 12px' }}>
+                      <span style={{ padding: '2px 8px', borderRadius: 100, fontSize: 11, background: 'var(--accent-soft)', color: 'var(--accent)' }}>
+                        {doc.cadre}
+                      </span>
+                    </td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center' }}>{doc.nb_chunks || 0}</td>
+                    <td style={{ padding: '8px 12px' }}>
+                      <span style={{
+                        padding: '2px 8px', borderRadius: 100, fontSize: 11,
+                        background: doc.statut === 'pret' ? 'rgba(39,174,96,0.1)' : doc.statut === 'erreur' ? 'rgba(231,76,60,0.1)' : 'rgba(241,196,15,0.1)',
+                        color: doc.statut === 'pret' ? '#27AE60' : doc.statut === 'erreur' ? '#E74C3C' : '#F1C40F',
+                      }}>
+                        {doc.statut === 'pret' ? 'Indexé' : doc.statut === 'erreur' ? 'Erreur' : 'En cours'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          {rag.documents.length === 0 && (
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+              Aucun document indexé. Cliquez sur "Indexer tous les couples" pour commencer.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
