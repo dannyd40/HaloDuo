@@ -156,7 +156,13 @@ export default function Dashboard() {
             </table>
           )}
 
-          {rag.documents.length === 0 && (
+          {rag.warning && (
+            <p style={{ fontSize: 13, color: '#E67E22', marginBottom: 12 }}>
+              {rag.warning}
+            </p>
+          )}
+
+          {!rag.warning && rag.documents.length === 0 && (
             <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
               Aucun document indexé. Cliquez sur "Indexer tous les couples" pour commencer.
             </p>

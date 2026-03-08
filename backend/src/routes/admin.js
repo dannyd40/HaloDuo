@@ -113,23 +113,40 @@ router.get('/couples', async (req, res) => {
 // GET /api/admin/rag — statut de l'indexation RAG
 router.get('/rag', async (req, res) => {
   try {
-    const [totalChunks, pdfs, couplesIndexes] = await Promise.all([
+    // Vérifie que les tables existent
+    const { rows: tables } = await db.query(
+      `SELECT table_name FROM information_schema.tables
+       WHERE table_schema = 'public' AND table_name IN ('pdfs', 'chunks_pdf')`
+    );
+    const tableNames = tables.map(t => t.table_name);
+
+    if (!tableNames.includes('pdfs') || !tableNames.includes('chunks_pdf')) {
+      return res.json({
+        total_chunks: 0,
+        total_documents: 0,
+        couples_indexes: 0,
+        couples_total: 0,
+        documents: [],
+        warning: 'Tables RAG manquantes (pdfs, chunks_pdf)',
+      });
+    }
+
+    const [totalChunks, pdfs, couplesIndexes, couplesTotal] = await Promise.all([
       db.query('SELECT COUNT(*)::int as count FROM chunks_pdf'),
       db.query(`SELECT p.id, p.nom, p.cadre, p.statut, p.nb_chunks, p.couple_id,
                        c.cadre_ethique
                 FROM pdfs p
                 LEFT JOIN couples c ON c.id = p.couple_id
                 ORDER BY p.nom`),
-      db.query(`SELECT DISTINCT couple_id FROM chunks_pdf`),
+      db.query('SELECT COUNT(DISTINCT couple_id)::int as count FROM chunks_pdf'),
+      db.query('SELECT COUNT(*)::int as count FROM couples'),
     ]);
 
-    const { rows: couplesTotal } = await db.query('SELECT COUNT(*)::int as count FROM couples');
-
     res.json({
-      total_chunks: totalChunks.rows[0].count,
+      total_chunks: totalChunks.rows[0]?.count || 0,
       total_documents: pdfs.rows.length,
-      couples_indexes: couplesIndexes.rows.length,
-      couples_total: couplesTotal.rows[0].count,
+      couples_indexes: couplesIndexes.rows[0]?.count || 0,
+      couples_total: couplesTotal.rows[0]?.count || 0,
       documents: pdfs.rows,
     });
   } catch (err) {
