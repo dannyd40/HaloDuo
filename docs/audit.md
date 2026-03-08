@@ -1,7 +1,8 @@
 # HaloDuo — Audit Codebase
 
 **Date** : 2026-03-08
-**Version** : commit a24d4fc
+**Dernière mise à jour** : 2026-03-08
+**Version** : commit 8a42179+
 
 ---
 
@@ -114,11 +115,9 @@ try {
 
 ## Issues INFO
 
-### 8. Ollama non configuré
+### 8. ~~Ollama non configuré~~ ✅ CONFIGURÉ
 
-**Impact** : Le RAG (recherche vectorielle dans les guides) est désactivé. Les guides éthiques existent mais ne sont pas indexés. Les conseils IA fonctionnent sans enrichissement contextuel.
-
-**Action** : Configurer un service Ollama sur Coolify quand prêt.
+**Résolu** : Ollama déployé sur Coolify avec `nomic-embed-text`. Route admin `/api/admin/indexer` disponible pour déclencher l'indexation.
 
 ---
 
