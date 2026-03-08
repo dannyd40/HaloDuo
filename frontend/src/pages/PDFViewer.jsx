@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { api, getAccessToken } from '../utils/api';
+import { api } from '../utils/api';
 import { Navbar, BottomNav } from '../components/Nav.jsx';
 
 export default function PDFViewer() {
@@ -23,17 +23,6 @@ export default function PDFViewer() {
     }).catch(console.error).finally(() => setLoading(false));
   }, [pdfId]);
 
-  const handleDownload = async () => {
-    const token = getAccessToken();
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/pdf/${pdfId}/download`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = pdf.nom; a.click();
-  };
-
   // Grouper chunks par section
   const sections = chunks.reduce((acc, chunk) => {
     const section = chunk.section_titre || 'Contenu';
@@ -44,7 +33,7 @@ export default function PDFViewer() {
 
   const sectionKeys = Object.keys(sections);
 
-  if (loading) return <><Navbar /><div style={{ display: 'flex', height: '80vh', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Chargement du PDF…</div><BottomNav /></>;
+  if (loading) return <><Navbar /><div style={{ display: 'flex', height: '80vh', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Chargement du guide…</div><BottomNav /></>;
 
   return (
     <>
@@ -77,12 +66,6 @@ export default function PDFViewer() {
               {section}
             </button>
           ))}
-
-          <div style={{ marginTop: 'auto', padding: 16 }}>
-            <button className="btn btn-ghost" style={{ width: '100%', fontSize: 12 }} onClick={handleDownload}>
-              ⬇ Télécharger
-            </button>
-          </div>
         </div>
 
         {/* Contenu principal */}

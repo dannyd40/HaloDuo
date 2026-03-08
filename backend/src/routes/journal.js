@@ -127,9 +127,9 @@ router.get('/historique', authenticate, async (req, res) => {
   const limit = partRows[0].plan === 'gratuit' ? 7 : 90;
   const { rows } = await db.query(
     `SELECT date_jour, scores, conseil_prive FROM journaux
-     WHERE partenaire_id = $1 AND date_jour >= NOW() - INTERVAL '${limit} days'
+     WHERE partenaire_id = $1 AND date_jour >= NOW() - make_interval(days => $2)
      ORDER BY date_jour DESC`,
-    [partRows[0].id]
+    [partRows[0].id, limit]
   );
   res.json({ journaux: rows, limit_jours: limit });
 });

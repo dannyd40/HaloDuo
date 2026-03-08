@@ -126,9 +126,9 @@ router.get('/historique', authenticate, async (req, res) => {
   const { rows } = await db.query(
     `SELECT date_jour, score_commun_global, tendance_direction, tendance_delta, mode_conseil
      FROM recommandations
-     WHERE couple_id = $1 AND date_jour >= NOW() - INTERVAL '${limit} days'
+     WHERE couple_id = $1 AND date_jour >= NOW() - make_interval(days => $2)
      ORDER BY date_jour DESC`,
-    [partRows[0].couple_id]
+    [partRows[0].couple_id, limit]
   );
 
   // Retourner seulement direction + score arrondi, pas les détails par axe
