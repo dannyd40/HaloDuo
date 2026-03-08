@@ -20,6 +20,7 @@ app.use('/api/recommandation', require('./routes/recommandation'));
 app.use('/api/pdf', require('./routes/pdf'));
 app.use('/api/stripe', require('./routes/stripe'));
 app.use('/api/couple', require('./routes/couple'));
+app.use('/api/admin', require('./routes/admin'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', app: 'Halo Duo' }));
 

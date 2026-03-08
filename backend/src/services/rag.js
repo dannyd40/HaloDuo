@@ -79,41 +79,33 @@ async function indexerMarkdown(filePath, pdfId, cadre, coupleId) {
   return indexerTexte(texte, pdfId, cadre, coupleId, sections);
 }
 
-// Indexe les guides intégrés pour un couple donné
-async function indexerGuidesIntegres(coupleId, cadre) {
-  const guidesDir = path.join(__dirname, '..', '..', 'data', 'pdfs');
-  const fichierParCadre = {
-    laique: 'guide-laique.md',
-    islam: 'guide-islam.md',
-    christianisme: 'guide-christianisme.md',
-    judaisme: 'guide-judaisme.md',
-    bouddhisme: 'guide-bouddhisme.md',
-  };
-
-  const fichier = fichierParCadre[cadre];
-  if (!fichier) return 0;
-
-  const filePath = path.join(guidesDir, fichier);
-  if (!fs.existsSync(filePath)) return 0;
-
+// Indexe un fichier unique (.md ou .pdf) pour un couple
+async function indexerFichier(filePath, nom, cadre, coupleId) {
   // Vérifie si déjà indexé pour ce couple
   const { rows } = await db.query(
     "SELECT id FROM pdfs WHERE couple_id = $1 AND nom = $2",
-    [coupleId, fichier]
+    [coupleId, nom]
   );
   if (rows.length > 0) return 0;
 
-  // Crée l'entrée PDF
   const { rows: pdfRows } = await db.query(
     `INSERT INTO pdfs (id, couple_id, nom, cadre, statut)
      VALUES (uuid_generate_v4(), $1, $2, $3, 'indexation')
      RETURNING id`,
-    [coupleId, fichier, cadre]
+    [coupleId, nom, cadre]
   );
   const pdfId = pdfRows[0].id;
 
   try {
-    const nbChunks = await indexerMarkdown(filePath, pdfId, cadre, coupleId);
+    let nbChunks;
+    if (filePath.endsWith('.md')) {
+      nbChunks = await indexerMarkdown(filePath, pdfId, cadre, coupleId);
+    } else if (filePath.endsWith('.pdf')) {
+      const buffer = fs.readFileSync(filePath);
+      nbChunks = await indexerPDF(buffer, pdfId, cadre, coupleId);
+    } else {
+      return 0;
+    }
     await db.query(
       "UPDATE pdfs SET statut = 'pret', nb_chunks = $1 WHERE id = $2",
       [nbChunks, pdfId]
@@ -121,9 +113,38 @@ async function indexerGuidesIntegres(coupleId, cadre) {
     return nbChunks;
   } catch (err) {
     await db.query("UPDATE pdfs SET statut = 'erreur' WHERE id = $1", [pdfId]);
-    console.error(`Erreur indexation guide ${fichier}:`, err.message);
+    console.error(`Erreur indexation ${nom}:`, err.message);
     return 0;
   }
+}
+
+// Indexe tous les guides du dossier correspondant au cadre éthique
+async function indexerGuidesIntegres(coupleId, cadre) {
+  const cadreDir = path.join(__dirname, '..', '..', 'data', 'pdfs', cadre);
+  if (!fs.existsSync(cadreDir)) return 0;
+
+  const fichiers = fs.readdirSync(cadreDir).filter(f => f.endsWith('.md') || f.endsWith('.pdf'));
+  let total = 0;
+
+  for (const fichier of fichiers) {
+    const filePath = path.join(cadreDir, fichier);
+    const n = await indexerFichier(filePath, fichier, cadre, coupleId);
+    if (n > 0) console.log(`  Indexé ${fichier}: ${n} chunks`);
+    total += n;
+  }
+  return total;
+}
+
+// Indexe les guides pour TOUS les couples existants
+async function indexerTousLesCouples() {
+  const { rows: couples } = await db.query('SELECT id, cadre_ethique FROM couples');
+  const resultats = [];
+
+  for (const couple of couples) {
+    const n = await indexerGuidesIntegres(couple.id, couple.cadre_ethique);
+    resultats.push({ couple_id: couple.id, cadre: couple.cadre_ethique, chunks: n });
+  }
+  return resultats;
 }
 
 async function rechercherChunks(requete, cadre, coupleId, topK = 3) {
@@ -139,4 +160,4 @@ async function rechercherChunks(requete, cadre, coupleId, topK = 3) {
   return rows;
 }
 
-module.exports = { indexerPDF, indexerMarkdown, indexerGuidesIntegres, rechercherChunks, genererEmbedding };
+module.exports = { indexerPDF, indexerMarkdown, indexerGuidesIntegres, indexerTousLesCouples, rechercherChunks, genererEmbedding };
