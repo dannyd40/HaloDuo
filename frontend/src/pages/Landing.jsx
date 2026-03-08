@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 export default function Landing() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 32px', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
+        <span className="logo" style={{ fontSize: 20 }}>Halo <span>Duo</span></span>
+        <Link to="/login" className="btn btn-ghost" style={{ fontSize: 14 }}>Se connecter</Link>
+      </div>
       {/* Hero */}
       <div style={{
         minHeight: '100vh',
