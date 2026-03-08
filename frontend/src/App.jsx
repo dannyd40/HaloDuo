@@ -13,12 +13,23 @@ import Recommandation from './pages/Recommandation.jsx';
 import Bibliotheque from './pages/Bibliotheque.jsx';
 import PDFViewer from './pages/PDFViewer.jsx';
 import Compte from './pages/Compte.jsx';
+import AdminDashboard from './pages/admin/Dashboard.jsx';
+import AdminUtilisateurs from './pages/admin/Utilisateurs.jsx';
+import AdminCouples from './pages/admin/Couples.jsx';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#A89880' }}>Halo Duo…</div>;
   if (!user) return <Navigate to="/login" />;
   if (!user.partenaire) return <Navigate to="/onboarding" />;
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'Cormorant Garamond, serif', fontSize: 22, color: '#A89880' }}>Halo Duo…</div>;
+  if (!user) return <Navigate to="/login" />;
+  if (!user.is_admin) return <Navigate to="/tableau" />;
   return children;
 }
 
@@ -43,6 +54,10 @@ function AppRoutes() {
         <Route path="/bibliotheque" element={<ProtectedRoute><Bibliotheque /></ProtectedRoute>} />
         <Route path="/bibliotheque/:pdfId" element={<ProtectedRoute><PDFViewer /></ProtectedRoute>} />
         <Route path="/compte" element={<ProtectedRoute><Compte /></ProtectedRoute>} />
+
+        <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="/admin/utilisateurs" element={<AdminRoute><AdminUtilisateurs /></AdminRoute>} />
+        <Route path="/admin/couples" element={<AdminRoute><AdminCouples /></AdminRoute>} />
       </Routes>
     </div>
   );

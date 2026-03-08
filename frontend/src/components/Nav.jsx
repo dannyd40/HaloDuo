@@ -14,7 +14,14 @@ export function Navbar() {
   return (
     <nav className="navbar">
       <Link to="/tableau" className="logo">Halo <span>Duo</span></Link>
-      {user && <BadgePlan plan={user.plan} />}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {user?.is_admin && (
+          <Link to="/admin" style={{ fontSize: 11, color: 'var(--gold)', background: 'rgba(201,168,76,0.1)', padding: '3px 10px', borderRadius: 100, textDecoration: 'none' }}>
+            Admin
+          </Link>
+        )}
+        {user && <BadgePlan plan={user.plan} />}
+      </div>
     </nav>
   );
 }
