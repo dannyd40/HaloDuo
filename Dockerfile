@@ -11,7 +11,7 @@ RUN npm run build
 
 # ---- Stage 2 : Production ----
 FROM node:20-alpine
-RUN apk add --no-cache nginx supervisor
+RUN apk add --no-cache nginx supervisor curl
 
 # Backend
 WORKDIR /app/backend
