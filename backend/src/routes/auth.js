@@ -70,7 +70,7 @@ router.get('/google/callback',
 // Me
 router.get('/me', require('../middleware/auth').authenticate, async (req, res) => {
   const { rows } = await db.query(
-    `SELECT u.id, u.email, u.nom, u.avatar_url, a.plan
+    `SELECT u.id, u.email, u.nom, u.avatar_url, u.is_admin, a.plan
      FROM users u LEFT JOIN abonnements a ON a.user_id = u.id WHERE u.id = $1`,
     [req.user.id]
   );

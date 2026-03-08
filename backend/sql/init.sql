@@ -9,6 +9,7 @@ CREATE TABLE users (
   google_id VARCHAR(255) UNIQUE,
   nom VARCHAR(100),
   avatar_url TEXT,
+  is_admin BOOLEAN DEFAULT FALSE,
   email_verifie BOOLEAN DEFAULT FALSE,
   token_verification VARCHAR(255),
   reset_password_token VARCHAR(255),
@@ -80,7 +81,7 @@ CREATE TABLE recommandations (
   -- Score commun = moyenne (A+B)/2, arrondie à 0.5
   score_commun_global NUMERIC(3,1) NOT NULL,
   -- Tendance : différence avec moyenne 7j précédents
-  tendance_direction VARCHAR(5), -- 'up' | 'down' | 'stable'
+  tendance_direction VARCHAR(10), -- 'up' | 'down' | 'stable'
   tendance_delta NUMERIC(3,1),
   mode_conseil VARCHAR(25) NOT NULL,
   recommandation TEXT NOT NULL,
