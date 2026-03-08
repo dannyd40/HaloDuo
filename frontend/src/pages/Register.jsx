@@ -55,7 +55,7 @@ export default function Register() {
           </form>
 
           <p style={{ textAlign: 'center', fontSize: 14, color: 'var(--text-soft)' }}>
-            Déjà un compte ? <Link to="/login" style={{ color: 'var(--accent)' }}>Se connecter</Link>
+            Déjà un compte ? <Link to={inviteCode ? `/login?code=${inviteCode}` : '/login'} style={{ color: 'var(--accent)' }}>Se connecter</Link>
           </p>
         </div>
       </div>

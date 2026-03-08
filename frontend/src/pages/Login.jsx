@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
 
 const GOOGLE_URL = `${import.meta.env.VITE_API_URL}/auth/google`;
 
 export default function Login() {
+  const [searchParams] = useSearchParams();
+  const inviteCode = searchParams.get('code') || '';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,7 +19,7 @@ export default function Login() {
     setLoading(true); setError('');
     try {
       await login(email, password);
-      navigate('/tableau');
+      navigate(inviteCode ? `/onboarding?code=${inviteCode}` : '/tableau');
     } catch (err) {
       setError(err.message);
     } finally { setLoading(false); }
@@ -60,7 +62,7 @@ export default function Login() {
           </form>
 
           <p style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: 'var(--text-soft)' }}>
-            Pas encore de compte ? <Link to="/register" style={{ color: 'var(--accent)' }}>Créer un compte</Link>
+            Pas encore de compte ? <Link to={inviteCode ? `/register?code=${inviteCode}` : '/register'} style={{ color: 'var(--accent)' }}>Créer un compte</Link>
           </p>
         </div>
       </div>
