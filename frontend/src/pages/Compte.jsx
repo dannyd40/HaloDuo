@@ -120,6 +120,12 @@ export default function Compte() {
           </div>
         )}
 
+        {user?.is_admin && (
+          <button className="btn btn-ghost" onClick={() => navigate('/admin')} style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}>
+            Administration
+          </button>
+        )}
+
         <button className="btn btn-ghost" onClick={handleLogout} style={{ width: '100%', justifyContent: 'center', color: '#C0392B', borderColor: '#C0392B', marginTop: 8 }}>
           Se déconnecter
         </button>
