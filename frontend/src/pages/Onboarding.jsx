@@ -19,7 +19,7 @@ export default function Onboarding() {
   const [cadre, setCadre] = useState('laique');
   const [code, setCode] = useState(inviteCode);
   const [step, setStep] = useState(1); // 1: mode, 2: details, 3: done
-  const [inviteCode, setInviteCode] = useState('');
+  const [generatedCode, setGeneratedCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ export default function Onboarding() {
     try {
       if (mode === 'creer') {
         const res = await api('/couple/creer', { method: 'POST', body: { prenom, cadre_ethique: cadre } });
-        setInviteCode(res.code);
+        setGeneratedCode(res.code);
         setStep(3);
       } else {
         await api('/couple/rejoindre', { method: 'POST', body: { code, prenom } });
@@ -61,7 +61,7 @@ export default function Onboarding() {
           marginBottom: 24,
           color: 'var(--accent)',
         }}>
-          {inviteCode}
+          {generatedCode}
         </div>
         <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => { refreshUser().then(() => navigate('/journal')); }}>
           Commencer mon journal →
