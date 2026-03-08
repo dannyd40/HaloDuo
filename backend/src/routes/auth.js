@@ -80,7 +80,20 @@ router.get('/me', require('../middleware/auth').authenticate, async (req, res) =
      FROM partenaires p JOIN couples c ON p.couple_id = c.id WHERE p.user_id = $1`,
     [req.user.id]
   );
-  res.json({ ...rows[0], partenaire: partRows[0] || null });
+
+  let partenaire_prenom = null;
+  if (partRows[0]) {
+    const { rows: otherRows } = await db.query(
+      `SELECT prenom FROM partenaires WHERE couple_id = $1 AND user_id != $2`,
+      [partRows[0].couple_id, req.user.id]
+    );
+    partenaire_prenom = otherRows[0]?.prenom || null;
+  }
+
+  res.json({
+    ...rows[0],
+    partenaire: partRows[0] ? { ...partRows[0], partenaire_prenom } : null,
+  });
 });
 
 module.exports = router;
