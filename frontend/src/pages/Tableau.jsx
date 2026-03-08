@@ -30,6 +30,7 @@ export default function Tableau() {
   const [data, setData] = useState(null);
   const [historique, setHistorique] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     Promise.all([
@@ -37,12 +38,27 @@ export default function Tableau() {
       api('/recommandation/historique'),
     ]).then(([tab, hist]) => {
       setData(tab);
-      setHistorique(hist.historique.reverse()); // chronologique
-    }).catch(console.error).finally(() => setLoading(false));
+      setHistorique((hist.historique || []).reverse()); // chronologique
+    }).catch(err => {
+      console.error(err);
+      setError(err.message || 'Erreur de chargement');
+    }).finally(() => setLoading(false));
   }, []);
 
   if (loading) return (
     <><Navbar /><div style={{ display: 'flex', height: '80vh', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Chargement…</div><BottomNav /></>
+  );
+
+  if (error || !data) return (
+    <><Navbar />
+      <div className="page">
+        <div className="card fade-up" style={{ textAlign: 'center', padding: 40 }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+          <h2 className="serif" style={{ fontSize: 24, marginBottom: 8 }}>{error || 'Impossible de charger le tableau'}</h2>
+          <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => window.location.reload()}>Réessayer</button>
+        </div>
+      </div>
+    <BottomNav /></>
   );
 
   return (
@@ -51,7 +67,7 @@ export default function Tableau() {
       <div className="page">
         <div className="fade-up" style={{ marginBottom: 24 }}>
           <h1 className="serif" style={{ fontSize: 36, fontWeight: 300 }}>Nous <em>aujourd'hui</em></h1>
-          <p style={{ color: 'var(--text-soft)', fontSize: 13 }}>{user?.partenaire?.mon_prenom} & {user?.partenaire?.partenaire_prenom || '…'}</p>
+          <p style={{ color: 'var(--text-soft)', fontSize: 13 }}>{user?.partenaire?.prenom} & {user?.partenaire?.partenaire_prenom || '…'}</p>
         </div>
 
         {user?.plan === 'gratuit' && <BannerFreemium restants={null} type="historique" />}

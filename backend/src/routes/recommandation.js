@@ -117,12 +117,11 @@ router.get('/tableau', authenticate, async (req, res) => {
 // Historique des recommandations communes (tendance uniquement)
 router.get('/historique', authenticate, async (req, res) => {
   const { rows: partRows } = await db.query(
-    `SELECT p.couple_id, a.plan FROM partenaires p
-     JOIN abonnements a ON a.user_id = p.user_id WHERE p.user_id = $1`, [req.user.id]
+    `SELECT couple_id FROM partenaires WHERE user_id = $1`, [req.user.id]
   );
   if (!partRows[0]) return res.status(404).json({ error: 'Pas de couple' });
 
-  const limit = partRows[0].plan === 'gratuit' ? 7 : 90;
+  const limit = req.user.plan === 'gratuit' ? 7 : 90;
   const { rows } = await db.query(
     `SELECT date_jour, score_commun_global, tendance_direction, tendance_delta, mode_conseil
      FROM recommandations
