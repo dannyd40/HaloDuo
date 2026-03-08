@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
+const { indexerGuidesIntegres } = require('../services/rag');
 
 const AXES_DEFAUT = [
   { slug: 'amusement', label: 'Joie / Amusement', emoji: '😊', ordre: 0 },
@@ -37,6 +38,14 @@ router.post('/creer', authenticate, async (req, res) => {
       );
     }
     await client.query('COMMIT');
+
+    // Indexation du guide éthique en arrière-plan (si Ollama dispo)
+    if (process.env.OLLAMA_URL) {
+      indexerGuidesIntegres(coupleId, cadre_ethique)
+        .then(n => n > 0 && console.log(`Guide ${cadre_ethique} indexé: ${n} chunks`))
+        .catch(err => console.error('Indexation guide:', err.message));
+    }
+
     res.json({ coupleId, code, cadre_ethique });
   } catch (err) {
     await client.query('ROLLBACK');
