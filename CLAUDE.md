@@ -134,7 +134,7 @@ State management: React Context (useAuth) for auth state; local useState in each
 ### Backend (Runtime — Coolify Environment Variables)
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string (`postgres://user:pass@host:5432/halo_duo`) |
+| `DATABASE_URL` | Yes | PostgreSQL connection string (`postgres://user:pass@host:5432/halo_duo`) — database name is `halo_duo`, not `postgres` |
 | `JWT_SECRET` | Yes | Access token signing key |
 | `JWT_REFRESH_SECRET` | Yes | Refresh token signing key |
 | `GROQ_API_KEY` | Yes | Groq API key for AI advice generation |
@@ -159,7 +159,7 @@ State management: React Context (useAuth) for auth state; local useState in each
 
 ## Database
 
-PostgreSQL with pgvector (`pgvector/pgvector:pg16`). Schema in `backend/sql/init.sql`. Setup script: `backend/sql/setup.sh` (creates DB + all tables, supports clean reset with DROP).
+PostgreSQL with pgvector (`pgvector/pgvector:pg16`). Database name: `halo_duo`. Schema in `backend/sql/init.sql`. Setup script: `backend/sql/setup.sh` (creates DB + all tables, supports clean reset with DROP).
 
 Key tables: `users`, `couples`, `partenaires`, `axes`, `journaux` (daily entries with JSONB scores), `recommandations`, `pdfs`, `chunks_pdf` (768-dim vector embeddings with ivfflat index), `abonnements` (subscriptions).
 

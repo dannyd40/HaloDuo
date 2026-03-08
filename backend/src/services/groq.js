@@ -85,6 +85,7 @@ ${descAxes}
 
 RÈGLES ABSOLUES :
 - Ne révèle JAMAIS qui a mis quel score — parle TOUJOURS des deux comme d'une unité
+- Ne mentionne JAMAIS les scores chiffrés (pas de "X/10", pas de chiffres) — utilise des termes qualitatifs (fort, modéré, fragile, etc.)
 - Parle du COUPLE, jamais des individus séparément
 - Ne culpabilise jamais personne
 - Mode actuel : ${MODES[mode].label}

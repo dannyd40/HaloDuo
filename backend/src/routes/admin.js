@@ -110,6 +110,20 @@ router.get('/couples', async (req, res) => {
   }
 });
 
+// POST /api/admin/indexer — indexer tous les couples
+router.post('/indexer', async (req, res) => {
+  try {
+    console.log('Indexation de tous les couples...');
+    const resultats = await indexerTousLesCouples();
+    const total = resultats.reduce((s, r) => s + r.chunks, 0);
+    console.log(`Indexation terminée: ${total} chunks pour ${resultats.length} couples`);
+    res.json({ success: true, total_chunks: total, couples: resultats });
+  } catch (err) {
+    console.error('Erreur indexation admin:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/admin/couples/:id/indexer — relancer indexation RAG
 router.post('/couples/:id/indexer', async (req, res) => {
   try {
