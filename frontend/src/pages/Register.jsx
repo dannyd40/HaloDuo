@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
+import { api } from '../utils/api';
 
 export default function Register() {
   const [searchParams] = useSearchParams();
@@ -8,7 +9,7 @@ export default function Register() {
   const [form, setForm] = useState({ nom: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { register, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -16,7 +17,13 @@ export default function Register() {
     setLoading(true); setError('');
     try {
       await register(form.email, form.password, form.nom);
-      navigate(inviteCode ? `/onboarding?code=${inviteCode}` : '/onboarding');
+      if (inviteCode) {
+        await api('/couple/rejoindre', { method: 'POST', body: { code: inviteCode, prenom: form.nom } });
+        await refreshUser();
+        navigate('/journal');
+      } else {
+        navigate('/onboarding');
+      }
     } catch (err) {
       setError(err.message);
     } finally { setLoading(false); }

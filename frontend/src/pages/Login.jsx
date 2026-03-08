@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
+import { api } from '../utils/api';
 
 const GOOGLE_URL = `${import.meta.env.VITE_API_URL}/auth/google`;
 
@@ -11,15 +12,21 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); setError('');
     try {
-      await login(email, password);
-      navigate(inviteCode ? `/onboarding?code=${inviteCode}` : '/tableau');
+      const me = await login(email, password);
+      if (inviteCode && !me.partenaire) {
+        await api('/couple/rejoindre', { method: 'POST', body: { code: inviteCode, prenom: me.nom } });
+        await refreshUser();
+        navigate('/journal');
+      } else {
+        navigate('/tableau');
+      }
     } catch (err) {
       setError(err.message);
     } finally { setLoading(false); }
