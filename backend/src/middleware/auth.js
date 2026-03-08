@@ -16,6 +16,18 @@ const authenticate = async (req, res, next) => {
     );
     if (!rows[0]) return res.status(401).json({ error: 'Utilisateur introuvable' });
     req.user = rows[0];
+
+    // Si le partenaire du couple est premium, l'autre l'est aussi
+    if (req.user.plan === 'gratuit') {
+      const { rows: coupleRows } = await db.query(
+        `SELECT a.plan FROM partenaires p1
+         JOIN partenaires p2 ON p1.couple_id = p2.couple_id AND p1.user_id != p2.user_id
+         JOIN abonnements a ON a.user_id = p2.user_id
+         WHERE p1.user_id = $1 AND a.plan != 'gratuit'`,
+        [decoded.userId]
+      );
+      if (coupleRows[0]) req.user.plan = coupleRows[0].plan;
+    }
     next();
   } catch {
     return res.status(401).json({ error: 'Token invalide' });
