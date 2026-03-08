@@ -85,7 +85,13 @@ router.get('/tableau', authenticate, async (req, res) => {
     const requeteRAG = `Conseil couple mode ${mode}: ${analyses.map(a => `${a.label} ${a.total}/20`).join(', ')}`;
     const chunks = await rechercherChunks(requeteRAG, ethique, couple_id).catch(() => []);
 
-    const recommandation = await genererRecommandationCommune({ analyses, mode, ethique, chunks });
+    let recommandation;
+    try {
+      recommandation = await genererRecommandationCommune({ analyses, mode, ethique, chunks });
+    } catch (err) {
+      console.error('Erreur génération recommandation:', err.message);
+      recommandation = 'Le service de recommandation est temporairement indisponible. Votre score commun a été calculé.';
+    }
 
     const { rows: newReco } = await db.query(
       `INSERT INTO recommandations (id, couple_id, date_jour, score_commun_global, tendance_direction, tendance_delta, mode_conseil, recommandation, chunks_utilises)

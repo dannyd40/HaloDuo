@@ -70,14 +70,19 @@ router.post('/', authenticate, async (req, res) => {
       ? tendRows.map(r => Object.values(r.scores).reduce((s,v) => s+v, 0) / Object.values(r.scores).length).reduce((s,v) => s+v, 0) / tendRows.length
       : null;
 
-    conseil_prive = await genererConseilPrive({
-      scores,
-      commentaire,
-      ethique: partenaire.cadre_ethique,
-      prenom: partenaire.prenom,
-      chunks,
-      tendance: tendance7j,
-    });
+    try {
+      conseil_prive = await genererConseilPrive({
+        scores,
+        commentaire,
+        ethique: partenaire.cadre_ethique,
+        prenom: partenaire.prenom,
+        chunks,
+        tendance: tendance7j,
+      });
+    } catch (err) {
+      console.error('Erreur génération conseil:', err.message);
+      conseil_prive = 'Le service de conseil est temporairement indisponible. Vos scores ont été enregistrés.';
+    }
 
     chunksUtilises = chunks.map(c => c.id);
   }
