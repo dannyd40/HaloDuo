@@ -169,19 +169,22 @@ frontend/src/pages/Landing.jsx      # Lien connexion header
 ## 6. Prochaines étapes
 
 ### Priorité haute
-1. **Vérifier clé Groq** — les conseils AI ne fonctionneront pas sans clé valide
-2. **Tester indexation RAG** — lancer `curl POST /api/admin/indexer` après deploy
-3. **Classer `marriage-french.pdf`** — quel cadre éthique ? Le déplacer dans le bon dossier
+1. **Indexation RAG async** — le bouton "Indexer" timeout (504) sur les gros fichiers (>100 KB). Rendre l'indexation asynchrone : backend lance en background, frontend poll le statut. `fransizca` et `marriage-french` restent bloqués "En cours" (0 chunks)
+2. **Reset PDFs bloqués** — `DELETE FROM pdfs WHERE statut = 'indexation' AND nb_chunks = 0;` puis relancer
+3. **Clé Groq** — vérifier/renouveler sur console.groq.com (était invalide, pas de conseils IA sans elle)
 4. **Tester le flow complet** : inscription → onboarding → journal → tableau → recommandation
 
 ### Priorité moyenne
-5. Corriger fuite privacy dans highlights (WARNING #4 audit)
-6. Ajouter rate limiting sur `/api/auth/*`
-7. Ajouter validation entrées (email, scores, prénom)
-8. Configurer Google OAuth callback pour dev local
+5. **UX bouton indexation** — garder le state entre changements de page ou indicateur global
+6. Corriger fuite privacy dans highlights (WARNING #4 audit)
+7. Ajouter rate limiting sur `/api/auth/*`
+8. Ajouter validation entrées (email, scores, prénom)
+9. Configurer Google OAuth callback pour dev local
 
 ### Priorité basse
-9. Ajouter `.gitattributes` pour CRLF
-10. Système de migrations DB (`node-pg-migrate`)
-11. User non-root dans Dockerfile
-12. Ajouter plus de PDFs/guides dans les dossiers éthiques
+10. Ajouter `.gitattributes` pour CRLF
+11. Système de migrations DB (`node-pg-migrate`)
+12. User non-root dans Dockerfile
+13. Ajouter plus de PDFs/guides dans les dossiers éthiques (christianisme, judaïsme, bouddhisme, laïque)
+14. Commiter `package-lock.json` (backend + frontend)
+15. Retrouver `marriage-french.pdf` original (jamais commité) et le mettre dans `pdfs-originaux/`
